@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 
 import apiRequests from '../../services/api';
 import { useNavigation } from '@react-navigation/native';
 import Login from '../Login';
-
+import EmpRepository from '../../Models/EmpRepository';
 
 export default function CadastrarEmps() {
   const [nome, setNome] = useState('');
@@ -27,7 +27,11 @@ export default function CadastrarEmps() {
       }else{
       await apiRequests.CadastrarEmpresa(dadosEmpresa);
       console.log("nome cadastrada com sucesso!");
+      
+      const empRepository = new EmpRepository();
+      empRepository.addEmp(dadosEmpresa.cnpj);
       navigation.navigate(Login);
+      return;
     }
     } catch (error) {
       console.error(error.message);

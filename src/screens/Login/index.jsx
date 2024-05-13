@@ -1,42 +1,42 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import apiRequests from '../../services/api';
 import { useNavigation } from '@react-navigation/native';
-import Home from '../Home';
-import CadastrarEmps from '../CadastrarEmps';
+import apiRequests from '../../services/api';
+import EmpRepository from '../../Models/EmpRepository'; 
 
 export default function Login() {
+  const navigation = useNavigation();
   const [empresa, setEmpresa] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [msgErro, setMsgErro] = useState(""); 
   const [erro, setErro] = useState(false);
-  const navigation = useNavigation();
-  const [msgSucesso, setMsgSucesso] = useState("");
-  const [sucesso, setSucesso] = useState(false);
+
+
+  const empRepository = new EmpRepository();
 
   const handleLogin = async () => {
     try {
-        if (!empresa || !email || !senha) {
-            console.log('Preencha todos os campos!');
-            setErro(true);
-            setMsgErro("Preencha todos os campos!");
-            return;
-        } else {
-           await apiRequests.VerificarSenha(senha, empresa);
-         
-                console.log('Login realizado com sucesso!');
-                setSucesso(true);
-                setMsgSucesso("Login realizado com sucesso!");
-               return navigation.navigate(Home);
-        
-        }
-    } catch (error) {
-        console.error('Erro ao verificar senha:', error.message);
+      if (!empresa || !email || !senha) {
+        console.log('Preencha todos os campos!');
         setErro(true);
-        setMsgErro("Senha incorreta ou Inexistente CADASTRE-SE!");
+        setMsgErro("Preencha todos os campos!");
+        return;
+      } else {
+        await apiRequests.VerificarSenha(senha, empresa);
+        const emp = await apiRequests.obterCnpj(senha, empresa);
+        empRepository.addEmp({emp})
+        console.log('Login realizado com sucesso!');
+        console.log(empRepository.getAllEmps());
+        navigation.navigate("Home");
+        return; 
+      }
+    } catch (error) {
+      console.error('Erro ao verificar senha:', error.message);
+      setErro(true);
+      setMsgErro("Senha incorreta ou Inexistente CADASTRE-SE!");
     }
-};
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -70,7 +70,6 @@ export default function Login() {
         Não possui conta? <TouchableOpacity style={styles.registerLink} onPress={()=> navigation.navigate(CadastrarEmps)}><Text>Cadastre-se aqui.</Text></TouchableOpacity>
       </Text>
       {erro && <Text style={styles.errorMessage}>{msgErro}</Text>}
-      {sucesso && <Text style={styles.errorMessage}>{msgSucesso}</Text>}
     </ScrollView>
   );
 }
